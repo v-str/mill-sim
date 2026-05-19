@@ -14,3 +14,6 @@ cmake_policy(SET CMP0167 NEW)
 
 # Подключаем дочерний модуль varm_server
 add_subdirectory(varm_server)
+
+# Файл для отображения в IDE (QtCreator)
+set(README ${CMAKE_SOURCE_DIR}/README.md)
