@@ -17,19 +17,20 @@ void handle_func(ba::ip::tcp::socket socket) {
 
       if (ec == boost::asio::error::eof) {
         std::cerr << "client disconnected" << std::endl;
+        break;
       } else if (ec) {
         std::cerr << "generic error" << std::endl;
+        break;
       }
 
       std::cout << "received: " << len << " bytes" << std::endl;
       std::cout.write(data, len) << std::endl;
 
       std::string echo_str("echo: ");
-      echo_str.append(data);
+      echo_str.append(data, len);
       echo_str.append("\n");
 
       ba::write(socket, ba::buffer(echo_str.data(), echo_str.length()));
-      echo_str.clear();
     }
   } catch (std::exception& e) {
     std::source_location loc = std::source_location::current();
