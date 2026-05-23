@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(vmill-sim LANGUAGES CXX)
-
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_subdirectory(server)
-add_subdirectory(client)
+add_executable(client
+    sources/main.cpp
+)
