@@ -11,11 +11,11 @@ find_package(Boost REQUIRED)
 
 set(SOURCES
     sources/main.cpp
-    sources/mill_machine.cpp
+    sources/mill_tcp_server.cpp
 )
 
 set(HEADERS
-    include/mill_machine.hpp
+    include/mill_tcp_server.hpp
     include/common.hpp
 )
 
@@ -31,3 +31,5 @@ target_include_directories(vmill-sim PRIVATE
 target_link_libraries(vmill-sim PRIVATE
     Boost::headers
 )
+
+add_custom_target(project_files SOURCES ${CMAKE_SOURCE_DIR}/README.md)

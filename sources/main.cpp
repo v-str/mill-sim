@@ -1,6 +1,13 @@
-#include "mill_machine.hpp"
+#include "mill_tcp_server.hpp"
 
 int main() {
-  mill::MillMachine machine(mill::OperationalMode::Simulation);
-  machine.start();
+  /*
+
+  MillMachine machine(opmode::emulation);
+  machine.run();
+
+  */
+
+  mill::MillTcpServer server;
+  server.setupServer();
 }
