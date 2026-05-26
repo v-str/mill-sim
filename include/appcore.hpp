@@ -18,6 +18,8 @@ class AppCore {
     void run();
 
    private:
+    void setupApp();
+
     asio::io_context m_context;
     TcpServer m_server;
 

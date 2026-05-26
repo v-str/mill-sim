@@ -30,6 +30,8 @@ target_include_directories(vmill-sim PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_compile_options(vmill-sim PRIVATE -fcoroutines)
+
 target_link_libraries(vmill-sim PRIVATE
     Boost::headers
 )
