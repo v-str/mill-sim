@@ -1,7 +1,6 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include <iostream>
 #include <memory>
 #include <string>
 
@@ -16,14 +15,15 @@ using asio::awaitable;
 using asio::co_spawn;
 using asio::detached;
 
-using std::cout;
-using std::endl;
-
 class TcpServer {
    public:
     TcpServer(asio::io_context* pCtx);
 
+    TcpServer(const TcpServer&) = delete;
+    TcpServer& operator=(const TcpServer&) = delete;
     ~TcpServer() = default;
+
+    void stop();
 
    private:
     void setupServer();

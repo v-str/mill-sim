@@ -14,13 +14,15 @@ namespace MillSim {
 class AppCore {
    public:
     AppCore(OperationalMode mode);
+    ~AppCore() = default;
 
     void run();
 
    private:
-    void setupApp();
+    awaitable<void> waitForShutdown();
 
     asio::io_context m_context;
+    asio::signal_set m_signals;
     TcpServer m_server;
 
     OperationalMode m_mode;
