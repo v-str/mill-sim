@@ -1,13 +1,6 @@
-#include "mill_tcp_server.hpp"
+#include "appcore.hpp"
 
 int main() {
-  /*
-
-  MillMachine machine(opmode::emulation);
-  machine.run();
-
-  */
-
-  mill::MillTcpServer tcpServer;
-  tcpServer.start();
+    MillSim::AppCore app(MillSim::OperationalMode::Simulation);
+    app.run();
 }

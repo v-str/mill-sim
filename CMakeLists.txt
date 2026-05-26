@@ -11,11 +11,13 @@ find_package(Boost REQUIRED)
 
 set(SOURCES
     sources/main.cpp
-    sources/mill_tcp_server.cpp
+    sources/appcore.cpp
+    sources/tcp_server.cpp
 )
 
 set(HEADERS
-    include/mill_tcp_server.hpp
+    include/appcore.hpp
+    include/tcp_server.hpp
     include/common.hpp
 )
 
