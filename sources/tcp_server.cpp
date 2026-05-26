@@ -1,13 +1,14 @@
 #include "tcp_server.hpp"
 
 #include <boost/asio/read_until.hpp>
+#include <systemd/sd-journal.h>
 
 namespace MillSim {
 
 TcpServer::TcpServer(asio::io_context* pCtx)
     : m_context(pCtx),
       m_acceptor(*m_context, ip::tcp::endpoint(ip::tcp::v4(), MillSim::PORT)) {
-    cout << "Server started" << endl;
+    sd_journal_print(LOG_INFO, "Server started on port %u", MillSim::PORT);
     setupServer();
 }
 
@@ -40,7 +41,7 @@ awaitable<void> TcpServer::echo(ip::tcp::socket socket) {
                                  asio::use_awaitable);
         }
     } catch (const boost::system::system_error& e) {
-        std::cout << "echo ended: " << e.what() << std::endl;
+        sd_journal_print(LOG_INFO, "echo ended: %s", e.what());
     }
 }
 

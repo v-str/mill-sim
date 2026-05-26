@@ -32,8 +32,11 @@ target_include_directories(vmill-sim PRIVATE
 
 target_compile_options(vmill-sim PRIVATE -fcoroutines)
 
+find_library(SYSTEMD_LIB systemd REQUIRED)
+
 target_link_libraries(vmill-sim PRIVATE
     Boost::headers
+    ${SYSTEMD_LIB}
 )
 
 add_custom_target(project_files SOURCES ${CMAKE_SOURCE_DIR}/README.md)
