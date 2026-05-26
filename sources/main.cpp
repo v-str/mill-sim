@@ -8,6 +8,6 @@ int main() {
 
   */
 
-  mill::MillTcpServer server;
-  server.setupServer();
+  mill::MillTcpServer tcpServer;
+  tcpServer.start();
 }

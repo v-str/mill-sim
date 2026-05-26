@@ -10,40 +10,24 @@ namespace mill {
 
 namespace asio = boost::asio;
 
-class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
- public:
-  TcpConnection(asio::ip::tcp::socket socket);
-
-  void doRead();
-  void doWrite(const std::string& response);
-
- private:
-  void handleError(const boost::system::error_code& error_code,
-                   const std::string& text);
-
-  asio::ip::tcp::socket m_socket;
-  asio::streambuf m_buffer;
-
-  static bool m_isConnectionLocked;
-};
-
 class MillTcpServer {
- public:
-  MillTcpServer();
+   public:
+    MillTcpServer();
 
-  MillTcpServer(const MillTcpServer&) = delete;
-  MillTcpServer& operator=(const MillTcpServer&) = delete;
+    MillTcpServer(const MillTcpServer&) = delete;
+    MillTcpServer& operator=(const MillTcpServer&) = delete;
 
-  ~MillTcpServer() = default;
+    ~MillTcpServer() = default;
 
-  void setupServer();
-  void run();
+    void start();
 
- private:
-  void client_listen();
+   private:
+    void listen();
+    void acceptHandler(const boost::system::error_code& ec,
+                       asio::ip::tcp::socket peer);
 
-  asio::io_context m_context;
-  asio::ip::tcp::acceptor m_acceptor;
+    asio::io_context m_context;
+    asio::ip::tcp::acceptor m_acceptor;
 };
 
 }  // namespace mill
