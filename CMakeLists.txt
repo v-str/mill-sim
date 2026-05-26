@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 cmake_policy(SET CMP0167 NEW)
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options)
 
 set(SOURCES
     sources/main.cpp
@@ -36,6 +36,7 @@ find_library(SYSTEMD_LIB systemd REQUIRED)
 
 target_link_libraries(vmill-sim PRIVATE
     Boost::headers
+    Boost::program_options
     ${SYSTEMD_LIB}
 )
 

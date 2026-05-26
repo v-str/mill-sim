@@ -59,9 +59,10 @@ awaitable<void> TcpServer::echo(ip::tcp::socket socket) {
             std::string line;
             std::getline(is, line);
 
-            std::string response = "Response: " + line + '\n';
+            std::string response = "Echo: " + line + '\n';
             co_await async_write(socket, asio::buffer(response),
                                  asio::use_awaitable);
+            sd_journal_print(LOG_WARNING, response.c_str());
         }
     } catch (const boost::system::system_error& e) {
         auto code = e.code();
