@@ -11,25 +11,25 @@ namespace ip = boost::asio::ip;
 
 namespace MillSim {
 
-/// @brief Точка входа в приложение.
-/// @details Владеет io_context, обработкой сигналов и TCP-сервером.
+    /// @brief Application entry point.
+    /// @details Owns the io_context, signal handling, and TCP server.
 class AppCore {
    public:
-    /// @brief Конструктор ядра приложения.
-    /// @param mode  Режим работы (Simulation / Production).
+    /// @brief AppCore constructor.
+    /// @param mode  Operational mode (Simulation / Production).
     AppCore(OperationalMode mode);
     ~AppCore() = default;
 
-    /// @brief Запустить цикл обработки событий io_context (блокирующий).
+    /// @brief Run the io_context event loop (blocking).
     void run();
 
    private:
-    /// @brief Ожидать SIGINT / SIGTERM и инициировать graceful shutdown.
+    /// @brief Wait for SIGINT/SIGTERM and trigger graceful shutdown.
     awaitable<void> waitForShutdown();
 
     asio::io_context m_context;
     asio::signal_set m_signals;
-    TcpServer m_server;
+    TcpServer m_tcpServer;
 
     OperationalMode m_mode;
 };

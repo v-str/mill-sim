@@ -15,30 +15,30 @@ using asio::awaitable;
 using asio::co_spawn;
 using asio::detached;
 
-/// @brief TCP-сервер, принимающий подключения и отвечающий эхо-ответами.
+/// @brief TCP server that accepts connections and echoes replies.
 class TcpServer {
    public:
-    /// @brief Конструктор, привязывающий сервер к переданному io_context.
-    /// @param pCtx  Указатель на asio::io_context (должен пережить сервер).
+    /// @brief Constructor binding the server to the given io_context.
+    /// @param pCtx  Pointer to asio::io_context (must outlive the server).
     TcpServer(asio::io_context* pCtx);
 
     TcpServer(const TcpServer&) = delete;
     TcpServer& operator=(const TcpServer&) = delete;
     ~TcpServer() = default;
 
-    /// @brief Закрыть acceptor и прекратить приём новых подключений.
+    /// @brief Close the acceptor and stop accepting new connections.
     void stop();
 
    private:
-    /// @brief Запустить корутину listen.
+    /// @brief Spawn the listen coroutine.
     void setupServer();
 
-    /// @brief Цикл принятия входящих подключений.
-    /// @details Для каждого принятого сокета порождается корутина echo.
+    /// @brief Accept incoming connections loop.
+    /// @details For each accepted socket, spawns an echo coroutine.
     awaitable<void> listen();
 
-    /// @brief Цикл эхо: прочитать строку, отправить "Response: <line>".
-    /// @param socket  Подключённый сокет для чтения и записи.
+    /// @brief Echo loop: read a line, send back "Echo: <line>".
+    /// @param socket  Connected socket for reading and writing.
     awaitable<void> echo(ip::tcp::socket socket);
 
     asio::io_context* m_context;

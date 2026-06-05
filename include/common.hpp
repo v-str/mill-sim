@@ -2,13 +2,13 @@
 
 namespace MillSim {
 
-/// Максимальное количество одновременных подключений.
+/// Maximum number of simultaneous connections.
 constexpr unsigned short CONNECTION_COUNT = 5;
 
-/// TCP-порт, на котором слушает сервер.
+/// TCP port the server listens on.
 constexpr unsigned short PORT = 2809;
 
-/// @brief Режим работы приложения.
+/// @brief Application operational mode.
 enum class OperationalMode { Simulation, Production };
 
 }  // namespace MillSim

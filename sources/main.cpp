@@ -9,9 +9,9 @@ namespace {
 
 MillSim::OperationalMode parseCommandLine(int argc, char* argv[]) {
     po::options_description desc(
-        "MillSim — сервер симулятора фрезерного станка");
-    desc.add_options()("help,h", "показать справку")(
-        "emulation", "режим симуляции (по умолчанию production)");
+        "MillSim — milling machine simulator server");
+    desc.add_options()("help,h", "show help")(
+        "emulation", "simulation mode (default: production)");
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -24,7 +24,7 @@ MillSim::OperationalMode parseCommandLine(int argc, char* argv[]) {
 
     if (!vm.contains("emulation")) {
         std::cout
-            << "Production mode not yet implemented, switching to --emulation"
+            << "Production mode not implemented yet, switching to --emulation"
             << std::endl;
     }
 

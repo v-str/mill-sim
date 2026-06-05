@@ -23,7 +23,7 @@ void TcpServer::stop() {
 }
 
 void TcpServer::setupServer() {
-    asio::co_spawn(*m_context, listen(), asio::detached);
+    co_spawn(*m_context, listen(), asio::detached);
 }
 
 awaitable<void> TcpServer::listen() {
@@ -49,6 +49,15 @@ awaitable<void> TcpServer::listen() {
 }
 
 awaitable<void> TcpServer::echo(ip::tcp::socket socket) {
+    std::string client;
+    {
+        boost::system::error_code ec;
+        auto ep = socket.remote_endpoint(ec);
+        if (!ec) {
+            client = ep.address().to_string();
+        }
+    }
+
     try {
         asio::streambuf buf;
         while (true) {
@@ -62,11 +71,13 @@ awaitable<void> TcpServer::echo(ip::tcp::socket socket) {
             std::string response = "Echo: " + line + '\n';
             co_await async_write(socket, asio::buffer(response),
                                  asio::use_awaitable);
-            sd_journal_print(LOG_WARNING, response.c_str());
         }
     } catch (const boost::system::system_error& e) {
         auto code = e.code();
-        if (code != asio::error::eof && code != asio::error::connection_reset) {
+        if (code == asio::error::eof || code == asio::error::connection_reset) {
+            sd_journal_print(LOG_INFO, "Client disconnected: %s",
+                             client.c_str());
+        } else {
             sd_journal_print(LOG_ERR, "Echo error: %s", e.what());
         }
     }
