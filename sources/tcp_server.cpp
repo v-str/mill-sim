@@ -69,6 +69,7 @@ awaitable<void> TcpServer::echo(ip::tcp::socket socket) {
             std::getline(is, line);
 
             std::string response = "Echo: " + line + '\n';
+            sd_journal_print(LOG_WARNING, "%s", response.c_str());
             co_await async_write(socket, asio::buffer(response),
                                  asio::use_awaitable);
         }
