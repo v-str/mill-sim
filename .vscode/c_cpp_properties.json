@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/src/client_connector/include",
+                "/opt/ros/lyrical/include/**",
+                "/usr/include/**"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/src/client_connector/include",
+                    "/opt/ros/lyrical/include",
+                    "/usr/include"
+                ],
+                "limitSymbolsToIncludedHeaders": false
+            },
+            "defines": [],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++23",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compileCommands": ""
+        }
+    ],
+    "version": 4
+}

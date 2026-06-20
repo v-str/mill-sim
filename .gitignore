@@ -1,4 +1,10 @@
 build
+install
+log
 .aider*
 .qtcreator/
 third_party/
+.giga*
+CMakeLists.txt.old
+*sources_old
+*include_old
