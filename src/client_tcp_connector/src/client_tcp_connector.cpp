@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/string.hpp>
 
 #include "tcp_server.hpp"
 
@@ -21,14 +22,20 @@ class ClientTcpConnector : public rclcpp::Node {
     void setupConnector() {
         if (get_parameter("operational_mode").as_string() == "simulation") {
             m_tcpServer.setOnMessageReceivedCallback([this](std::string msg) {
-                // этот колбек будет вызываться при получении сообщения из
-                // Андроид-приложения, но пока тут просто лог
                 RCLCPP_INFO(get_logger(), "(SIMULATION) TCP получено: %s",
                             msg.c_str());
             });
+
+            m_tcpTxSub = create_subscription<std_msgs::msg::String>(
+                "tcp_tx", 10, [this](std_msgs::msg::String::SharedPtr msg) {
+                    RCLCPP_INFO(get_logger(), "(SIMULATION) TCP отправлено: %s",
+                                msg->data.c_str());
+                    m_tcpServer.send(msg->data + '\n');
+                });
         }
     }
 
+    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr m_tcpTxSub;
     TcpServer m_tcpServer;
 };
 

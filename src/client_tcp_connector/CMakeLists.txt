@@ -7,6 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
 
 add_executable(client_tcp_connector
@@ -21,6 +22,7 @@ target_compile_features(client_tcp_connector PRIVATE cxx_std_23)
 target_compile_options(client_tcp_connector PRIVATE -fcoroutines)
 target_link_libraries(client_tcp_connector PRIVATE
   rclcpp::rclcpp
+  std_msgs::std_msgs
   Boost::headers
   Boost::program_options
 )
