@@ -1,0 +1,8 @@
+client_tcp_connector:
+  ros__parameters:
+    # Порт TCP-сервера для подключения Android-приложения
+    port: 2809
+    # Максимальное количество одновременных подключений
+    connection_count: 5
+    # Режим работы: "simulation" | "production"
+    operational_mode: "simulation"
