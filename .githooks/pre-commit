@@ -1,0 +1,15 @@
+#!/bin/bash
+
+files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cpp|hpp|h)$' || true)
+
+if [ -z "$files" ]; then
+    exit 0
+fi
+
+echo "$files" | while IFS= read -r file; do
+    clang-format -i "$file"
+done
+
+echo "$files" | while IFS= read -r file; do
+    git add "$file"
+done

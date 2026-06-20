@@ -25,14 +25,18 @@ class TcpServer {
     void runServer(unsigned short port, unsigned short connectionCount);
     void stop();
 
-    void setOnMessage(std::function<void(std::string)> callback);
+    void setOnMessageReceivedCallback(
+        std::function<void(std::string)> callback);
+    void setOnMessageSentCallback(std::function<void(std::string)> callback);
+    void send(std::string data);
 
    private:
     void setupServer();
     awaitable<void> listen();
     awaitable<void> echo(ip::tcp::socket socket);
 
-    std::function<void(std::string)> m_onMessage;
+    std::function<void(std::string)> m_onMessageCallback;
+    std::function<void(std::string)> m_onMessageSentCallback;
     std::unique_ptr<asio::io_context> m_ioContext;
     unsigned short m_connectionCount;
     std::unique_ptr<ip::tcp::acceptor> m_acceptor;
