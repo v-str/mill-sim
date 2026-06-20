@@ -13,13 +13,13 @@ class ClientTcpConnector : public rclcpp::Node {
         auto connectionCount = static_cast<unsigned short>(
             get_parameter("connection_count").as_int());
 
-        setupConnector();
+        setup();
 
         m_tcpServer.runServer(port, connectionCount);
     }
 
    private:
-    void setupConnector() {
+    void setup() {
         if (get_parameter("operational_mode").as_string() == "simulation") {
             m_tcpServer.setOnMessageReceivedCallback([this](std::string msg) {
                 RCLCPP_INFO(get_logger(), "(SIMULATION) TCP получено: %s",
