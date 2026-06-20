@@ -1,6 +1,5 @@
 #include "tcp_server.hpp"
 
-#include <boost/asio/read_until.hpp>
 #include <iostream>
 
 namespace MillSim {
@@ -15,14 +14,21 @@ TcpServer::~TcpServer() {
 void TcpServer::runServer(unsigned short port, unsigned short connectionCount) {
     m_connectionCount = connectionCount;
     m_ioContext = std::make_unique<asio::io_context>();
+    m_strand = std::make_unique<asio::strand<asio::io_context::executor_type>>(
+        asio::make_strand(*m_ioContext));
     m_acceptor = std::make_unique<ip::tcp::acceptor>(
         *m_ioContext, ip::tcp::endpoint(ip::tcp::v4(), port));
 
-    setupServer();
+    co_spawn(*m_ioContext, listen(), asio::detached);
     m_asioThread = std::thread([this] { m_ioContext->run(); });
 }
 
 void TcpServer::stop() {
+    for (auto& session : m_sessions) {
+        session->disconnect();
+    }
+    m_sessions.clear();
+
     if (m_ioContext) {
         m_ioContext->stop();
     }
@@ -32,63 +38,87 @@ void TcpServer::stop() {
     }
 }
 
-void TcpServer::setupServer() {
-    co_spawn(*m_ioContext, listen(), asio::detached);
-}
-
 awaitable<void> TcpServer::listen() {
     try {
         while (true) {
             ip::tcp::socket socket =
                 co_await m_acceptor->async_accept(asio::use_awaitable);
 
-            co_spawn(m_acceptor->get_executor(), echo(std::move(socket)),
-                     detached);
+            if (m_sessions.size() >= m_connectionCount) {
+                auto msg = std::string("ERROR: max connections reached (") +
+                           std::to_string(m_connectionCount) + ")\n";
+                co_await async_write(socket, asio::buffer(msg),
+                                     asio::use_awaitable);
+                socket.close();
+                continue;
+            }
+
+            auto role =
+                m_sessions.empty() ? ClientRole::Admin : ClientRole::Auditor;
+
+            auto session =
+                std::make_shared<ClientSession>(std::move(socket), role);
+            m_sessions.push_back(session);
+
+            co_spawn(*m_strand, watchSession(session), detached);
         }
     } catch (const boost::system::system_error& e) {
         std::cerr << "listen error: " << e.code().message() << std::endl;
     }
 }
 
-awaitable<void> TcpServer::echo(ip::tcp::socket socket) {
-    try {
-        asio::streambuf buf;
-        while (true) {
-            co_await asio::async_read_until(socket, buf, '\n',
-                                            asio::use_awaitable);
+awaitable<void> TcpServer::watchSession(
+    std::shared_ptr<ClientSession> session) {
+    co_await session->readLoop(m_onMessageReceivedCallback);
 
-            std::istream is(&buf);
-            std::string line;
-            std::getline(is, line);
+    auto it = std::find_if(m_sessions.begin(), m_sessions.end(),
+                           [&](auto& s) { return s == session; });
+    if (it != m_sessions.end()) {
+        bool wasAdmin = (*it)->isAdmin();
+        m_sessions.erase(it);
 
-            if (m_onMessageCallback) {
-                m_onMessageCallback(line);
-            }
-
-            std::string response = line + '\n';
-            co_await async_write(socket, asio::buffer(response),
-                                 asio::use_awaitable);
+        if (wasAdmin && !m_sessions.empty()) {
+            m_sessions.front()->changeRole(ClientRole::Admin);
         }
-    } catch (const boost::system::system_error& e) {
-        std::cerr << "echo error: " << e.code().message() << std::endl;
+    }
+}
+
+void TcpServer::send(std::string data) {
+    asio::post(*m_strand, [this, data = std::move(data)] {
+        m_writeQueue.push_back(std::move(data));
+        if (m_writeQueue.size() == 1) {
+            doWrite();
+        }
+    });
+}
+
+void TcpServer::doWrite() {
+    if (m_writeQueue.empty()) return;
+
+    auto data = std::make_shared<std::string>(std::move(m_writeQueue.front()));
+    m_writeQueue.pop_front();
+
+    auto counter = std::make_shared<size_t>(m_sessions.size());
+    if (*counter == 0) {
+        doWrite();
+        return;
+    }
+
+    for (auto& session : m_sessions) {
+        async_write(
+            session->socket(), asio::buffer(*data),
+            asio::bind_executor(
+                *m_strand, [this, counter](boost::system::error_code, size_t) {
+                    if (--(*counter) == 0) {
+                        doWrite();
+                    }
+                }));
     }
 }
 
 void TcpServer::setOnMessageReceivedCallback(
     std::function<void(std::string)> callback) {
-    m_onMessageCallback = callback;
-}
-
-void TcpServer::setOnMessageSentCallback(
-    std::function<void(std::string)> callback) {
-    m_onMessageSentCallback = callback;
-}
-
-void TcpServer::send(std::string data) {
-    if (m_onMessageSentCallback) {
-        m_onMessageSentCallback(data);
-    }
-    asio::post(*m_ioContext, [this, data = std::move(data)] { (void)data; });
+    m_onMessageReceivedCallback = callback;
 }
 
 }  // namespace MillSim

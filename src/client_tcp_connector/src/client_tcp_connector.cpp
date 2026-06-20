@@ -21,11 +21,9 @@ class ClientTcpConnector : public rclcpp::Node {
     void setupConnector() {
         if (get_parameter("operational_mode").as_string() == "simulation") {
             m_tcpServer.setOnMessageReceivedCallback([this](std::string msg) {
+                // этот колбек будет вызываться при получении сообщения из
+                // Андроид-приложения, но пока тут просто лог
                 RCLCPP_INFO(get_logger(), "(SIMULATION) TCP получено: %s",
-                            msg.c_str());
-            });
-            m_tcpServer.setOnMessageSentCallback([this](std::string msg) {
-                RCLCPP_INFO(get_logger(), "(SIMULATION) TCP отправлено: %s",
                             msg.c_str());
             });
         }

@@ -11,6 +11,7 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 
 add_executable(client_tcp_connector
   src/client_tcp_connector.cpp
+  src/client_session.cpp
   src/tcp_server.cpp
 )
 target_include_directories(client_tcp_connector PRIVATE
