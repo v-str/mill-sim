@@ -1,6 +1,7 @@
 build
 install
 log
+.vscode/
 .aider*
 .qtcreator/
 third_party/
