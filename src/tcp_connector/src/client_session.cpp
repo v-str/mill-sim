@@ -4,7 +4,7 @@
 #include <boost/asio/use_awaitable.hpp>
 #include <iostream>
 
-namespace MillSim {
+namespace CNC {
 
 ClientSession::ClientSession(ip::tcp::socket socket, ClientRole role)
     : m_socket(std::move(socket)), m_role(role) {}
@@ -41,4 +41,4 @@ awaitable<void> ClientSession::readLoop(
     }
 }
 
-}  // namespace MillSim
+}  // namespace CNC

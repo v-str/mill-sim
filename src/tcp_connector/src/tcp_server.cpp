@@ -2,14 +2,14 @@
 
 #include <iostream>
 
-namespace MillSim {
+namespace CNC {
 
-TcpServer::~TcpServer() {
-    stop();
-    if (m_asioThread.joinable()) {
-        m_asioThread.join();
-    }
-}
+// ---------------------------------------------------------------------------
+TcpServer::~TcpServer() { stop(); }
+
+// ---------------------------------------------------------------------------
+// Запуск и остановка
+// ---------------------------------------------------------------------------
 
 void TcpServer::runServer(unsigned short port, unsigned short connectionCount) {
     m_connectionCount = connectionCount;
@@ -20,7 +20,7 @@ void TcpServer::runServer(unsigned short port, unsigned short connectionCount) {
         *m_ioContext, ip::tcp::endpoint(ip::tcp::v4(), port));
 
     co_spawn(*m_ioContext, listen(), asio::detached);
-    m_asioThread = std::thread([this] { m_ioContext->run(); });
+    m_asioThread = std::jthread([this] { m_ioContext->run(); });
 }
 
 void TcpServer::stop() {
@@ -38,6 +38,10 @@ void TcpServer::stop() {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Принятие подключений
+// ---------------------------------------------------------------------------
+
 awaitable<void> TcpServer::listen() {
     try {
         while (true) {
@@ -45,6 +49,8 @@ awaitable<void> TcpServer::listen() {
                 co_await m_acceptor->async_accept(asio::use_awaitable);
 
             if (m_sessions.size() >= m_connectionCount) {
+                // Обязательно co_await async_write — close() оборвёт
+                // незавершённую запись, и клиент не успеет прочитать ошибку.
                 auto msg = std::string("ERROR: max connections reached (") +
                            std::to_string(m_connectionCount) + ")\n";
                 co_await async_write(socket, asio::buffer(msg),
@@ -55,7 +61,6 @@ awaitable<void> TcpServer::listen() {
 
             auto role =
                 m_sessions.empty() ? ClientRole::Admin : ClientRole::Auditor;
-
             auto session =
                 std::make_shared<ClientSession>(std::move(socket), role);
             m_sessions.push_back(session);
@@ -66,6 +71,10 @@ awaitable<void> TcpServer::listen() {
         std::cerr << "listen error: " << e.code().message() << std::endl;
     }
 }
+
+// ---------------------------------------------------------------------------
+// Наблюдение за сессией
+// ---------------------------------------------------------------------------
 
 awaitable<void> TcpServer::watchSession(
     std::shared_ptr<ClientSession> session) {
@@ -83,6 +92,10 @@ awaitable<void> TcpServer::watchSession(
     }
 }
 
+// ---------------------------------------------------------------------------
+// Отправка (post на strand) и широковещательная запись
+// ---------------------------------------------------------------------------
+
 void TcpServer::send(std::string data) {
     asio::post(*m_strand, [this, data = std::move(data)] {
         m_writeQueue.push_back(std::move(data));
@@ -95,6 +108,7 @@ void TcpServer::send(std::string data) {
 void TcpServer::doWrite() {
     if (m_writeQueue.empty()) return;
 
+    // shared_ptr — async_write может пережить этот вызов.
     auto data = std::make_shared<std::string>(std::move(m_writeQueue.front()));
     m_writeQueue.pop_front();
 
@@ -104,11 +118,14 @@ void TcpServer::doWrite() {
         return;
     }
 
+    // Параллельный async_write на каждую сессию. Колбэки на strand.
     for (auto& session : m_sessions) {
         async_write(
             session->socket(), asio::buffer(*data),
             asio::bind_executor(
-                *m_strand, [this, counter](boost::system::error_code, size_t) {
+                *m_strand, [this, counter](boost::system::error_code /*ec*/,
+                                           size_t /*bytes*/) {
+                    // Когда все сессии завершили запись — следующий элемент.
                     if (--(*counter) == 0) {
                         doWrite();
                     }
@@ -116,9 +133,10 @@ void TcpServer::doWrite() {
     }
 }
 
+// ---------------------------------------------------------------------------
 void TcpServer::setOnMessageReceivedCallback(
     std::function<void(std::string)> callback) {
     m_onMessageReceivedCallback = callback;
 }
 
-}  // namespace MillSim
+}  // namespace CNC

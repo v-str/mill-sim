@@ -3,12 +3,22 @@
 
 #include "tcp_server.hpp"
 
-namespace MillSim {
+namespace CNC {
 
-class ClientTcpConnector : public rclcpp::Node {
+/**
+ * @brief ROS 2-нода-мост: подписка /tcp_tx → TcpServer::send().
+ *
+ * В режиме "simulation" подписывается на топик std_msgs/String "tcp_tx" и
+ * передаёт каждое сообщение в TCP-сервер (broadcast всем Android-клиентам).
+ * В режиме "production" будет также обрабатывать входящие сообщения от
+ * Admin-сессии и публиковать их в ROS 2.
+ *
+ * Параметры (из YAML): port, connection_count, operational_mode.
+ */
+class TcpConnector : public rclcpp::Node {
    public:
-    ClientTcpConnector(const rclcpp::NodeOptions& options)
-        : Node("client_tcp_connector", options) {
+    TcpConnector(const rclcpp::NodeOptions& options)
+        : Node("tcp_connector", options) {
         auto port = static_cast<unsigned short>(get_parameter("port").as_int());
         auto connectionCount = static_cast<unsigned short>(
             get_parameter("connection_count").as_int());
@@ -26,6 +36,7 @@ class ClientTcpConnector : public rclcpp::Node {
                             msg.c_str());
             });
 
+            // тестовая публикация в топик /tcp_tx
             m_tcpTxSub = create_subscription<std_msgs::msg::String>(
                 "tcp_tx", 10, [this](std_msgs::msg::String::SharedPtr msg) {
                     RCLCPP_INFO(get_logger(), "(SIMULATION) TCP отправлено: %s",
@@ -39,7 +50,7 @@ class ClientTcpConnector : public rclcpp::Node {
     TcpServer m_tcpServer;
 };
 
-}  // namespace MillSim
+}  // namespace CNC
 
 int main(int argc, char* argv[]) {
     rclcpp::init(argc, argv);
@@ -47,7 +58,7 @@ int main(int argc, char* argv[]) {
     rclcpp::NodeOptions opts;
     opts.automatically_declare_parameters_from_overrides(true);
 
-    auto node = std::make_shared<MillSim::ClientTcpConnector>(opts);
+    auto node = std::make_shared<CNC::TcpConnector>(opts);
     rclcpp::spin(node);
     rclcpp::shutdown();
 }

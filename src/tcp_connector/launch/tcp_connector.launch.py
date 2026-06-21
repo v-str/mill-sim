@@ -6,14 +6,14 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    pkg_dir = get_package_share_directory('client_tcp_connector')
-    params_file = os.path.join(pkg_dir, 'config', 'client_tcp_connector.yaml')
+    pkg_dir = get_package_share_directory('tcp_connector')
+    params_file = os.path.join(pkg_dir, 'config', 'tcp_connector.yaml')
 
     return LaunchDescription([
         Node(
-            package='client_tcp_connector',
-            executable='client_tcp_connector',
-            name='client_tcp_connector',
+            package='tcp_connector',
+            executable='tcp_connector',
+            name='tcp_connector',
             parameters=[params_file],
             output='screen',
         ),
