@@ -17,7 +17,7 @@ using asio::detached;
 /**
  * @brief Роли клиентских сессий TCP-сервера.
  *
- * Admin — может отправлять команды на ROS 2 через onMessageReceivedCallback.
+ * Admin — может отправлять команды на через onMessageReceivedCallback.
  * Auditor — только получает широковещательные данные, его ввод игнорируется.
  *
  * Роль Admin назначается первому подключившемуся клиенту; при его отключении
@@ -51,12 +51,13 @@ class ClientSession {
      * @brief Цикл чтения строк из сокета (блокирующая корутина).
      *
      * Читает до '\n'; если сессия Admin, передаёт прочитанную строку в
-     * onReceived. Auditor читает и отбрасывает.
+     * onReceivedCallback. Auditor читает и отбрасывает.
      *
      * Завершается при отключении клиента, ошибке чтения или вызове
      * disconnect().
      */
-    awaitable<void> readLoop(std::function<void(std::string)> onReceived);
+    awaitable<void> readLoop(
+        std::function<void(std::string)> onReceivedCallback);
 
    private:
     ip::tcp::socket m_socket;

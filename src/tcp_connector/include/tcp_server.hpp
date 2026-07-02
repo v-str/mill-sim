@@ -63,6 +63,22 @@ class TcpServer {
         std::function<void(std::string)> callback);
 
     /**
+     * @brief Установить колбэк при подключении клиента.
+     *
+     * Вызывается на strand после добавления сессии в m_sessions.
+     */
+    void setOnClientConnectedCallback(
+        std::function<void(std::shared_ptr<ClientSession>)> callback);
+
+    /**
+     * @brief Установить колбэк при отключении клиента.
+     *
+     * Вызывается на strand после readLoop (до удаления сессии).
+     */
+    void setOnClientDisconnectedCallback(
+        std::function<void(std::shared_ptr<ClientSession>)> callback);
+
+    /**
      * @brief Поставить сообщение в очередь broadcast-рассылки всем сессиям.
      *
      * Потокобезопасна: asio::post на strand. Если очередь была пуста —
@@ -85,6 +101,10 @@ class TcpServer {
     void doWrite();
 
     std::function<void(std::string)> m_onMessageReceivedCallback;
+    std::function<void(std::shared_ptr<ClientSession>)>
+        m_onClientConnectedCallback;
+    std::function<void(std::shared_ptr<ClientSession>)>
+        m_onClientDisconnectedCallback;
     std::unique_ptr<asio::io_context> m_ioContext;
     std::unique_ptr<asio::strand<asio::io_context::executor_type>> m_strand;
     unsigned short m_connectionCount;

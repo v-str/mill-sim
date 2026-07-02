@@ -65,6 +65,10 @@ awaitable<void> TcpServer::listen() {
                 std::make_shared<ClientSession>(std::move(socket), role);
             m_sessions.push_back(session);
 
+            if (m_onClientConnectedCallback) {
+                m_onClientConnectedCallback(session);
+            }
+
             co_spawn(*m_strand, watchSession(session), detached);
         }
     } catch (const boost::system::system_error& e) {
@@ -78,8 +82,14 @@ awaitable<void> TcpServer::listen() {
 
 awaitable<void> TcpServer::watchSession(
     std::shared_ptr<ClientSession> session) {
+    // блочим сессию, пока она не отключится
     co_await session->readLoop(m_onMessageReceivedCallback);
 
+    if (m_onClientDisconnectedCallback) {
+        m_onClientDisconnectedCallback(session);
+    }
+
+    // удаляем завершившуюся сессию
     auto it = std::find_if(m_sessions.begin(), m_sessions.end(),
                            [&](auto& s) { return s == session; });
     if (it != m_sessions.end()) {
@@ -137,6 +147,16 @@ void TcpServer::doWrite() {
 void TcpServer::setOnMessageReceivedCallback(
     std::function<void(std::string)> callback) {
     m_onMessageReceivedCallback = callback;
+}
+
+void TcpServer::setOnClientConnectedCallback(
+    std::function<void(std::shared_ptr<ClientSession>)> callback) {
+    m_onClientConnectedCallback = callback;
+}
+
+void TcpServer::setOnClientDisconnectedCallback(
+    std::function<void(std::shared_ptr<ClientSession>)> callback) {
+    m_onClientDisconnectedCallback = callback;
 }
 
 }  // namespace CNC

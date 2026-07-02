@@ -20,8 +20,10 @@ void ClientSession::disconnect() {
     m_socket.close(ec);
 }
 
+// вот тут уже блокируемся и работаем с клиентом, если мы отсюда вышли, значит
+// сессия завершилась
 awaitable<void> ClientSession::readLoop(
-    std::function<void(std::string)> onReceived) {
+    std::function<void(std::string)> onReceivedCallback) {
     try {
         asio::streambuf buf;
         while (true) {
@@ -32,12 +34,15 @@ awaitable<void> ClientSession::readLoop(
             std::string line;
             std::getline(is, line);
 
-            if (isAdmin() && onReceived) {
-                onReceived(line);
+            // если админ и колбек есть
+            if (isAdmin() && onReceivedCallback) {
+                onReceivedCallback(line);
             }
         }
     } catch (const boost::system::system_error& e) {
-        std::cerr << "read error: " << e.code().message() << std::endl;
+        if (e.code() != asio::error::eof) {
+            std::cerr << "read error: " << e.code().message() << std::endl;
+        }
     }
 }
 
