@@ -32,7 +32,7 @@ class TcpConnector : public rclcpp::Node {
     void setup() {
         if (get_parameter("operational_mode").as_string() == "simulation") {
             m_tcpServer.setOnMessageReceivedCallback([this](std::string msg) {
-                RCLCPP_INFO(get_logger(), "(SIMULATION) TCP получено: %s",
+                RCLCPP_INFO(get_logger(), "Получено сообщение: %s",
                             msg.c_str());
             });
 
